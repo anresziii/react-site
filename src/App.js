@@ -1,52 +1,33 @@
-import React, { useState, useMemo } from 'react';
-import PostList from './components/PostList';
-import "./styles/App.css"
-import PostForm from './components/PostForm';
-import PostFilter from './components/PostFilter';
-import MyModal from './components/ui/modal/MyModal';
-import MyButton from './components/ui/button/MyButton';
-import { usePosts } from './components/hooks/usePosts';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import AppRouter from './components/AppRouter';
+import NavBar from './components/ui/navbar/NavBar';
+import { AuthContext } from './context';
+import "./styles/App.css";
 
 function App() {
-    const [posts, setPosts] = useState([])
+    const [isAuth, setIsAuth] = useState(false)
+    const [isLoading, setLoading] = useState(true)
 
-    const [filter, setFilter] = useState({ sort: "", query: "" })
-    const [modal, setModal] = useState(false)
-    const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query)
-
-    const removePost = (post) => {
-        setPosts(posts.filter(p => p.id !== post.id))
-    }
-
-    const createPost = (newPost) => {
-        setPosts([...posts, newPost])
-        setModal(false)
-    }
-
-    async const fetchPosts = () => {
-        const response = await axios.get("https://jsonplaceholder.typicode.com/posts")
-        console.log(response.data);
-    }
+    useEffect(() => {
+        if (localStorage.getItem('auth')) {
+            setIsAuth(true)
+        }
+        setLoading(false)
+    }, [])
 
     return (
-        <div className="App">
-            <button onClick={fetchPosts}>GET</button>
-            <MyButton style={{ marginTop: "30px" }} onClick={() => setModal(true)}>
-                Создать пост
-            </MyButton>
-            <hr style={{ margin: "15px 0" }} />
-            <MyModal visible={modal} setVisible={setModal}>
-                <PostForm create={createPost} />
-            </MyModal>
-            <PostFilter
-                filter={filter}
-                setFilter={setFilter}
-            />
-            <PostList remove={removePost} posts={sortedAndSearchedPosts} title={"Список постов"} />
-
-        </div>
-    );
+        <AuthContext.Provider value={{
+            isAuth,
+            setIsAuth,
+            isLoading,
+        }}>
+            <BrowserRouter>
+                <NavBar />
+                <AppRouter />
+            </BrowserRouter>
+        </AuthContext.Provider>
+    )
 }
 
 export default App;
